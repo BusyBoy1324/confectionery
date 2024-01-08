@@ -2,6 +2,9 @@ using AutoMapper;
 using confectionery_back.DataContext;
 using confectionery_back.DTO;
 using confectionery_back.Model;
+using confectionery_back.Service.BiscuitServices;
+using confectionery_back.Service.CookieServices;
+using confectionery_back.Service.FillingServices;
 using confectionery_back.Service.UserServices;
 using confectionery_back.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +17,15 @@ var config = new MapperConfiguration(cfg =>
 {
     cfg.CreateMap<UserDto, User>();
     cfg.CreateMap<User, UserViewModel>();
+
+    cfg.CreateMap<BiscuitDto, Biscuit>();
+    cfg.CreateMap<Biscuit, BiscuitViewModel>();
+
+    cfg.CreateMap<FillingDto, Filling>();
+    cfg.CreateMap<Filling, FillingViewModel>();
+
+    cfg.CreateMap<CookieDto, Cookie>();
+    cfg.CreateMap<Cookie, CookieViewModel>();
 });
 
 IMapper mapper = config.CreateMapper();
@@ -24,6 +36,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IBiscuitService, BiscuitService>();
+builder.Services.AddScoped<IFillingService, FillingService>();
+builder.Services.AddScoped<ICookieService, CookieService>();
 
 builder.Services.AddDbContext<ConfectionaryContext>(options =>
 {
