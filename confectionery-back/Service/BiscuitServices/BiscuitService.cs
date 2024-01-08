@@ -33,7 +33,7 @@ namespace confectionery_back.Service.BiscuitServices
 
 			if (biscuit is null)
 			{
-				throw new Exception("Can't insert biscuit because it's null");
+				throw new Exception("Can't insert biscuit because it'ss null");
 			}
 
 			_context.Biscuits.Add(biscuit);
