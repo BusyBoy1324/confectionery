@@ -58,8 +58,8 @@ namespace confectionery_back.Controllers
 		public async Task<ActionResult<List<BiscuitViewModel>>> DeleteAsync(Guid id)
 		{
 			await _biscuitService.DeleteAsync(id);
-			var cookies = await _biscuitService.GetAllAsync();
-			var mapped = _mapper.Map<List<BiscuitViewModel>>(cookies);
+			var biscuits = await _biscuitService.GetAllAsync();
+			var mapped = _mapper.Map<List<BiscuitViewModel>>(biscuits);
 			return Ok(mapped);
 		}
 	}

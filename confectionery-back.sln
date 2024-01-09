@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "confectionery-back", "confectionery-back\confectionery-back.csproj", "{D5E4E54F-9164-4B84-9399-A0C88B9163EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "confectionery-front", "confectionery-front\confectionery-front.csproj", "{A3E28C05-986E-49F1-A550-C3F5709AABA1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D5E4E54F-9164-4B84-9399-A0C88B9163EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5E4E54F-9164-4B84-9399-A0C88B9163EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5E4E54F-9164-4B84-9399-A0C88B9163EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3E28C05-986E-49F1-A550-C3F5709AABA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3E28C05-986E-49F1-A550-C3F5709AABA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3E28C05-986E-49F1-A550-C3F5709AABA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3E28C05-986E-49F1-A550-C3F5709AABA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

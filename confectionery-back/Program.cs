@@ -5,6 +5,7 @@ using confectionery_back.Model;
 using confectionery_back.Service.BiscuitServices;
 using confectionery_back.Service.CookieServices;
 using confectionery_back.Service.FillingServices;
+using confectionery_back.Service.OrderServices;
 using confectionery_back.Service.UserServices;
 using confectionery_back.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,9 @@ var config = new MapperConfiguration(cfg =>
 
     cfg.CreateMap<CookieDto, Cookie>();
     cfg.CreateMap<Cookie, CookieViewModel>();
+
+    cfg.CreateMap<OrderDto, Order>();
+    cfg.CreateMap<Order, OrderViewModel>();
 });
 
 IMapper mapper = config.CreateMapper();
@@ -39,6 +43,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBiscuitService, BiscuitService>();
 builder.Services.AddScoped<IFillingService, FillingService>();
 builder.Services.AddScoped<ICookieService, CookieService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 builder.Services.AddDbContext<ConfectionaryContext>(options =>
 {
