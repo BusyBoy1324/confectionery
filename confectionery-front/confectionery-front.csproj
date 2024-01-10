@@ -7,4 +7,8 @@
     <RootNamespace>confectionery_front</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="6.12.0" />
+  </ItemGroup>
+
 </Project>

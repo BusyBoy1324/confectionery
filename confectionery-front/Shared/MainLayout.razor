@@ -2,18 +2,43 @@
 
 <PageTitle>confectionery-front</PageTitle>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<head>
+    <MudThemeProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
+</head>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+<MudLayout>
+    <MudAppBar Dense="@dense" Style="background-color: #EBDACC; padding-left: 0px;">
+        <a href="#">
+            <img src="images/logo.png" style="max-width:83px; max-height: 65px; margin-left: 0px;"/>
+        </a>
+    </MudAppBar>
+    <MudDrawer @bind-Open="@open" ClipMode="clipMode" Breakpoint="@breakpoint" 
+    PreserveOpenState="@preserveOpenState" Elevation="1" Variant="@DrawerVariant.Mini"
+               OpenMiniOnHover="true">
+        <MudNavMenu>
+            <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Person">Клиенты</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Cake">Бисквиты</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Cookie">Печенья</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Icecream">Начинки</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent Class="pt-16 px-16">
+        <MudContainer Class="mt-6">
+           
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+@code {
+    bool open = false;
+    bool dense = false;
+    bool preserveOpenState = false;
+    Breakpoint breakpoint = Breakpoint.Lg;
+    DrawerClipMode clipMode = DrawerClipMode.Docked;
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
+}
