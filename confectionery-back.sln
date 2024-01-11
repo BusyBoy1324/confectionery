@@ -5,7 +5,10 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "confectionery-back", "confectionery-back\confectionery-back.csproj", "{D5E4E54F-9164-4B84-9399-A0C88B9163EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "confectionery-front", "confectionery-front\confectionery-front.csproj", "{A3E28C05-986E-49F1-A550-C3F5709AABA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "confectionery-front", "confectionery-front\confectionery-front.csproj", "{A3E28C05-986E-49F1-A550-C3F5709AABA1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D5E4E54F-9164-4B84-9399-A0C88B9163EA} = {D5E4E54F-9164-4B84-9399-A0C88B9163EA}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -11,11 +11,11 @@
 <MudLayout>
     <MudAppBar Dense="@dense" Style="background-color: #EBDACC; padding-left: 0px;">
         <a href="#">
-            <img src="images/logo.png" style="max-width:83px; max-height: 65px; margin-left: 0px;"/>
+            <img src="images/logo.png" style="max-width:83px; max-height: 65px; margin-left: 0px;" />
         </a>
     </MudAppBar>
-    <MudDrawer @bind-Open="@open" ClipMode="clipMode" Breakpoint="@breakpoint" 
-    PreserveOpenState="@preserveOpenState" Elevation="1" Variant="@DrawerVariant.Mini"
+    <MudDrawer @bind-Open="@open" ClipMode="clipMode" Breakpoint="@breakpoint"
+               PreserveOpenState="@preserveOpenState" Elevation="1" Variant="@DrawerVariant.Mini"
                OpenMiniOnHover="true">
         <MudNavMenu>
             <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Person">Клиенты</MudNavLink>
@@ -26,7 +26,7 @@
     </MudDrawer>
     <MudMainContent Class="pt-16 px-16">
         <MudContainer Class="mt-6">
-           
+            @Body
         </MudContainer>
     </MudMainContent>
 </MudLayout>
@@ -35,7 +35,7 @@
     bool dense = false;
     bool preserveOpenState = false;
     Breakpoint breakpoint = Breakpoint.Lg;
-    DrawerClipMode clipMode = DrawerClipMode.Docked;
+    DrawerClipMode clipMode = DrawerClipMode.Never;
 
     void ToggleDrawer()
     {
