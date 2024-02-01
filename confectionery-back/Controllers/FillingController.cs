@@ -53,8 +53,8 @@ namespace confectionery_back.Controllers
 			return Ok(_mapper.Map<FillingViewModel>(updatedFilling));
 		}
 
-		[HttpDelete("{id}")]
-		public async Task<ActionResult<List<FillingViewModel>>> DeleteAsync(Guid id)
+		[HttpDelete]
+		public async Task<ActionResult<List<FillingViewModel>>> DeleteAsync([FromQuery] Guid id)
 		{
 			await _fillingService.DeleteAsync(id);
 			var fillings = await _fillingService.GetAllAsync();

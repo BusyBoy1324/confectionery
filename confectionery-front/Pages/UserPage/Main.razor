@@ -1,0 +1,145 @@
+﻿@page "/users"
+@inject IUserService UserService
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+@inject IModalService Modal
+
+<PageTitle>Клиенты</PageTitle>
+
+<h3>Клиенты</h3>
+<div class="row" style="width: 100%; margin-bottom: 10px;">
+	<div class="col-md-8" style="width: 50%">
+		<div style="display: flex; align-items: center; margin-bottom: 16px">
+			<RadzenButton Click="@ClearSelection" Text="Очистить" Style="margin-right: 1%" />
+			<RadzenButton Icon="add_circle_outline" Text="Create" Click="@CreateClick" Style="margin-right: 1%" Disabled=@(userToUpdate != null) />
+			<RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRowAsync(selectedUser[0]))" @onclick:stopPropagation="true" Style="margin-right: 1%" />
+			<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(args => DeleteAsync(selectedUser[0].Id))" @onclick:stopPropagation="true" Style="margin-right: 1%" />
+			@if (selectedUser?.Any() == true)
+			{
+				<div style="margin-left: 16px">
+					Selected Cookie: @selectedUser[0].UserName
+				</div>
+			}
+		</div>
+		<RadzenDataGrid AllowAlternatingRows="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="10"
+						AllowSorting="true" Data="@users" EditMode="DataGridEditMode.Single" TItem="User" ColumnWidth="200px"
+						SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedUser>
+			<Columns>
+				<RadzenDataGridColumn TItem="User" Property="Id" Title="Id">
+					<EditTemplate Context="cookie">
+						<RadzenNumeric @bind-Value="cookie.Id" Style="width:100%; display: block" Name="Id" />
+					</EditTemplate>
+				</RadzenDataGridColumn>
+				<RadzenDataGridColumn TItem="User" Property="UserName" Title="Никнейм">
+					<EditTemplate Context="user">
+						<RadzenTextBox @bind-Value="user.UserName" Style="width: 100%; display: block" Name="UserName" />
+						<RadzenRequiredValidator Text="UserName is required" Component="UserName" Popup="true" />
+					</EditTemplate>
+				</RadzenDataGridColumn>
+			</Columns>
+		</RadzenDataGrid>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public string ErrorMessage { get; set; }
+
+	RadzenDataGrid<User> userGrid;
+	IEnumerable<User> users;
+	IList<User> selectedUser;
+	User userToUpdate;
+	List<IModalReference> counter = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			users = await UserService.GetAllAsync();
+			selectedUser = users.Take(1).ToList();
+		}
+		catch (Exception ex)
+		{
+			ErrorMessage = ex.Message;
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = ex.Message });
+		}
+	}
+
+	async Task EditRowAsync(User user)
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "У тебя уже открыто одно модальное окно" });
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(User.Id), user.Id);
+		parameters.Add(nameof(User_Modal.Mode), ModalEnum.Update);
+
+		var formModal = Modal.Show<User_Modal>("Изменить клиенты", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		users = await UserService.GetAllAsync();
+	}
+
+	private async Task DeleteAsync(Guid id)
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "У тебя уже открыто одно модальное окно" });
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(User.Id), id);
+		parameters.Add(nameof(User_Modal.Mode), ModalEnum.Delete);
+
+		var formModal = Modal.Show<User_Modal>("Удалить клиента", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		users = await UserService.GetAllAsync();
+	}
+
+	void ClearSelection()
+	{
+		selectedUser = null;
+	}
+
+	private async Task CreateClick()
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "У тебя уже открыто одно модальное окно");
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(User.Id), Guid.Empty);
+		parameters.Add(nameof(User_Modal.Mode), ModalEnum.Create);
+
+		var formModal = Modal.Show<User_Modal>("Создать клиента", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		users = await UserService.GetAllAsync();
+	}
+
+	private void AddModal(IModalReference modal)
+	{
+		counter.Add(modal);
+	}
+
+	private void ClearModalCount()
+	{
+		counter.Clear();
+	}
+}

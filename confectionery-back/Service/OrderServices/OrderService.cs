@@ -22,6 +22,16 @@ namespace confectionery_back.Service.OrderServices
 			return await _context.Orders.ToListAsync();
 		}
 
+		public async Task<List<Order>> GetAllCompletedAsync()
+		{
+			return await _context.Orders.Where(c => c.IsCompleted == true).ToListAsync();
+		}
+
+		public async Task<List<Order>> GetAllIncompletedAsync()
+		{
+			return await _context.Orders.Where(c => c.IsCompleted == false).ToListAsync();
+		}
+
 		public async Task<Order> GetByIdAsync(Guid id)
 		{
 			return await _context.Orders.FirstOrDefaultAsync(order => order.Id == id);

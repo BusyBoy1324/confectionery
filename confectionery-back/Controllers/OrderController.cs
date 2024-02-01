@@ -29,7 +29,25 @@ namespace confectionery_back.Controllers
 			return Ok(mapped);
 		}
 
-		[HttpGet("{id}")]
+        [HttpGet]
+        [Route("completed")]
+        public async Task<ActionResult<List<OrderViewModel>>> GetAllCompetedAsync()
+        {
+            var orders = await _orderService.GetAllCompletedAsync();
+            var mapped = _mapper.Map<List<OrderViewModel>>(orders);
+            return Ok(mapped);
+        }
+
+        [HttpGet]
+        [Route("incompleted")]
+        public async Task<ActionResult<List<OrderViewModel>>> GetAllIncompletedAsync()
+        {
+            var orders = await _orderService.GetAllIncompletedAsync();
+            var mapped = _mapper.Map<List<OrderViewModel>>(orders);
+            return Ok(mapped);
+        }
+
+        [HttpGet("{id}")]
 		public async Task<ActionResult<OrderViewModel>> GetByIdAsync(Guid id)
 		{
 			var orders = await _orderService.GetByIdAsync(id);
@@ -53,8 +71,8 @@ namespace confectionery_back.Controllers
 			return Ok(_mapper.Map<OrderViewModel>(updatedOrder));
 		}
 
-		[HttpDelete("{id}")]
-		public async Task<ActionResult<List<OrderViewModel>>> DeleteAsync(Guid id)
+		[HttpDelete]
+		public async Task<ActionResult<List<OrderViewModel>>> DeleteAsync([FromQuery] Guid id)
 		{
 			await _orderService.DeleteAsync(id);
 			var orders = await _orderService.GetAllAsync();

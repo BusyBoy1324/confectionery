@@ -53,8 +53,8 @@ namespace confectionery_back.Controllers
 			return Ok(_mapper.Map<CookieViewModel>(updatedCookie));
 		}
 
-		[HttpDelete("{id}")]
-		public async Task<ActionResult<List<CookieViewModel>>> DeleteAsync(Guid id)
+		[HttpDelete]
+		public async Task<ActionResult<List<CookieViewModel>>> DeleteAsync([FromQuery] Guid id)
 		{
 			await _cookieService.DeleteAsync(id);
 			var cookies = await _cookieService.GetAllAsync();

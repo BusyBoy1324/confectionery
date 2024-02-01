@@ -66,3 +66,12 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+
+.custom-modal-position {
+    position: absolute;
+    top: 12%;
+    left: 60%;
+    margin-top: -50px;
+    margin-left: -50px;
+}

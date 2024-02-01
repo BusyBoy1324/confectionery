@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@using MudBlazor;
 
 <PageTitle>confectionery-front</PageTitle>
 
@@ -6,10 +7,17 @@
     <MudThemeProvider />
     <MudDialogProvider />
     <MudSnackbarProvider />
+    <RadzenNotification />
 </head>
 
+<style>
+    body {
+        background: none !important;
+    }
+</style>
+
 <MudLayout>
-    <MudAppBar Dense="@dense" Style="background-color: #EBDACC; padding-left: 0px;">
+    <MudAppBar Dense="@dense" Style="background-color: #59b779; padding-left: 0px;">
         <a href="#">
             <img src="images/logo.png" style="max-width:83px; max-height: 65px; margin-left: 0px;" />
         </a>
@@ -18,18 +26,20 @@
                PreserveOpenState="@preserveOpenState" Elevation="1" Variant="@DrawerVariant.Mini"
                OpenMiniOnHover="true">
         <MudNavMenu>
-            <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Person">Клиенты</MudNavLink>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Cake">Бисквиты</MudNavLink>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Cookie">Печенья</MudNavLink>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Icecream">Начинки</MudNavLink>
+            <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Person">Клиенты</MudNavLink>
+            <MudNavLink Href="/biscuits" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Cake">Бисквиты</MudNavLink>
+            <MudNavLink Href="/cookies"  Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Cookie">Печенья</MudNavLink>
+            <MudNavLink Href="/fillings" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Icecream">Начинки</MudNavLink>
+            <MudNavLink Href="/orders" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.AddTask">Добавить заказ</MudNavLink>
         </MudNavMenu>
     </MudDrawer>
-    <MudMainContent Class="pt-16 px-16">
-        <MudContainer Class="mt-6">
-            @Body
-        </MudContainer>
-    </MudMainContent>
 </MudLayout>
+
+<MudMainContent Class="pt-16 px-16">
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Style="margin-top: 20px;">
+        @Body
+    </MudContainer>
+</MudMainContent>
 @code {
     bool open = false;
     bool dense = false;

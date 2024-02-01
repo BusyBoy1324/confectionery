@@ -1,0 +1,124 @@
+﻿@inject NotificationService NotificationService
+
+@inject IUserService _userService
+<RadzenTemplateForm Data="_username">
+	<RadzenFieldset Text="Форма Клиента">
+		<RadzenStack Gap="1rem">
+			<RadzenRow AlignItems="AlignItems.Center">
+				<RadzenColumn Size="12" SizeMD="4">
+					<RadzenLabel Text="Ник" Component="Ник" />
+				</RadzenColumn>
+				<RadzenColumn Size="12" SizeMD="8">
+					<RadzenTextBox Style="width: 100%;" Name="Name" @bind-value="_username" Disabled="Mode == ModalEnum.Delete" />
+				</RadzenColumn>
+			</RadzenRow>
+		</RadzenStack>
+	</RadzenFieldset>
+	@if (Mode == ModalEnum.Create || Mode == ModalEnum.Update)
+	{
+		<RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Medium" Icon="save" Text="Сохранить" Style="margin-top: 15px;" Click="SaveElement " />
+	}
+	else if (Mode == ModalEnum.Delete)
+	{
+		<RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Medium" Icon="delete" Text="Удалить" Style="margin-top: 15px;" Click="DeleteElement" />
+	}
+	<RadzenButton Size="ButtonSize.Medium" Icon="cancel" Text="Отменить" Style="margin-top: 15px;" Click="CancelAsync" ButtonStyle="ButtonStyle.Light" />
+</RadzenTemplateForm>
+
+@code {
+	[CascadingParameter] public IModalService Modal { get; set; }
+
+	[CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+
+	[Parameter] public Guid Id { get; set; }
+	[Parameter] public ModalEnum Mode { get; set; }
+
+	string _username;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (Mode == ModalEnum.Create)
+		{
+			_username = "Никнейм inst";
+		}
+		else if ((Mode == ModalEnum.Update) || (Mode == ModalEnum.Delete))
+		{
+			User user = new();
+			try
+			{
+				user = await _userService.GetByIdAsync(Id);
+			}
+			catch (Exception ex)
+			{
+				NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something bad happened :(", Detail = ex.Message });
+			}
+			_username = user.UserName;
+		}
+
+		await InvokeAsync(StateHasChanged);
+		await base.OnInitializedAsync();
+	}
+
+	private async Task SaveElement()
+	{
+		if (string.IsNullOrEmpty(_username))
+		{
+			var msg = new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Error!", Detail = "Name is required!", Duration = 2000 };
+			NotificationService.Notify(msg);
+			return;
+		}
+
+		if (Mode == ModalEnum.Create)
+		{
+			var newUser = new UserDto()
+				{
+					UserName = _username,
+				};
+
+			try
+			{
+				await _userService.CreateAsync(newUser);
+			}
+			catch (Exception ex)
+			{
+				NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something bad happened :(", Detail = ex.Message });
+			}
+		}
+		else if (Mode == ModalEnum.Update)
+		{
+			User user = new();
+			user.Id = Id;
+			user.UserName = _username;
+
+			try
+			{
+				await _userService.UpdateAsync(user);
+			}
+			catch (Exception ex)
+			{
+				NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something bad happened :(", Detail = ex.Message });
+			}
+		}
+
+		await ModalInstance.CloseAsync(ModalResult.Ok<bool>(true));
+	}
+
+	private async Task DeleteElement()
+	{
+		try
+		{
+			await _userService.DeleteAsync(Id);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something bad happened :(", Detail = ex.Message });
+		}
+
+		await ModalInstance.CloseAsync(ModalResult.Ok<bool>(true));
+	}
+
+	private async Task CancelAsync()
+	{
+		await ModalInstance.CancelAsync();
+	}
+}

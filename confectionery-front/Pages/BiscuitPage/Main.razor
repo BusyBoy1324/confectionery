@@ -1,0 +1,146 @@
+﻿@page "/biscuits"
+@inject IBiscuitService BiscuitService
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+@inject IModalService Modal
+@inject DialogService DialogService
+
+<PageTitle>Biscuits</PageTitle>
+
+<h3>Biscuits</h3>
+<div class="row" style="width: 100%; margin-bottom: 10px;">
+<div class="col-md-8" style="width: 50%">
+	<div style="display: flex; align-items: center; margin-bottom: 16px">
+		<RadzenButton Click="@ClearSelection" Text="Очистить" Style="margin-right: 1%"/>
+		<RadzenButton Icon="add_circle_outline" Text="Create" Click="@CreateClick" Style="margin-right: 1%" Disabled=@(biscuitToUpdate != null)/>
+		<RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRowAsync(selectedBiscuit[0]))" @onclick:stopPropagation="true" Style="margin-right: 1%"/>
+		<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(args => DeleteAsync(selectedBiscuit[0].Id))" @onclick:stopPropagation="true" Style="margin-right: 1%"/>
+		@if (selectedBiscuit?.Any() == true)
+		{
+			<div style="margin-left: 16px">
+				Selected Biscuit: @selectedBiscuit[0].Name
+			</div>
+		}
+	</div>
+	<RadzenDataGrid AllowAlternatingRows="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="10"
+	                AllowSorting="true" Data="@biscuits" EditMode="DataGridEditMode.Single" TItem="Biscuit" ColumnWidth="200px"
+	                SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedBiscuit>
+		<Columns>
+			<RadzenDataGridColumn TItem="Biscuit" Property="Id" Title="Id">
+				<EditTemplate Context="brand">
+					<RadzenNumeric @bind-Value="brand.Id" Style="width:100%; display: block" Name="Id" />
+				</EditTemplate>
+			</RadzenDataGridColumn>
+			<RadzenDataGridColumn TItem="Biscuit" Property="Name" Title="Название">
+				<EditTemplate Context="brand">
+					<RadzenTextBox @bind-Value="brand.Name" Style="width: 100%; display: block" Name="Name"/>
+					<RadzenRequiredValidator Text="Name is required" Component="Name" Popup="true"/>
+				</EditTemplate>
+			</RadzenDataGridColumn>
+		</Columns>
+	</RadzenDataGrid>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public string ErrorMessage { get; set; }
+
+	RadzenDataGrid<Biscuit> biscuitGrid;
+	IEnumerable<Biscuit> biscuits;
+	IList<Biscuit> selectedBiscuit;
+	Biscuit biscuitToUpdate;
+	List<IModalReference> counter = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			biscuits = await BiscuitService.GetAllAsync();
+			selectedBiscuit = biscuits.Take(1).ToList();
+		}
+		catch (Exception ex)
+		{
+			ErrorMessage = ex.Message;
+			NotificationService.Notify(new NotificationMessage() {Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = ex.Message});
+		}
+	}
+
+	async Task EditRowAsync(Biscuit biscuit)
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "У тебя уже открыто одно модальное окно"});
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(Biscuit.Id), biscuit.Id);
+		parameters.Add(nameof(Biscuit_modal.Mode), ModalEnum.Update);
+
+		var formModal = Modal.Show<Biscuit_modal>("Update Biscuit", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		biscuits = await BiscuitService.GetAllAsync();
+	}
+
+	private async Task DeleteAsync(Guid id)
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "У тебя уже открыто одно модальное окно" });
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(Biscuit.Id), id);
+		parameters.Add(nameof(Biscuit_modal.Mode), ModalEnum.Delete);
+
+		var formModal = Modal.Show<Biscuit_modal>("Delete Biscuit", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		biscuits = await BiscuitService.GetAllAsync();
+	}
+
+	void ClearSelection()
+	{
+		selectedBiscuit = null;
+	}
+
+	private async Task CreateClick()
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "У тебя уже открыто одно модальное окно");
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(Biscuit.Id), Guid.Empty);
+		parameters.Add(nameof(Biscuit_modal.Mode), ModalEnum.Create);
+
+		var formModal = Modal.Show<Biscuit_modal>("Создать Бисквит", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		biscuits = await BiscuitService.GetAllAsync();
+	}
+
+	private void AddModal(IModalReference modal)
+	{
+		counter.Add(modal);
+	}
+
+	private void ClearModalCount()
+	{
+		counter.Clear();
+	}
+}

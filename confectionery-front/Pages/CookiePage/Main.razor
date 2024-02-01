@@ -1,0 +1,145 @@
+﻿@page "/cookies"
+@inject ICookieService CookieService
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+@inject IModalService Modal
+
+<PageTitle>Cookies</PageTitle>
+
+<h3>Cookies</h3>
+<div class="row" style="width: 100%; margin-bottom: 10px;">
+	<div class="col-md-8" style="width: 50%">
+		<div style="display: flex; align-items: center; margin-bottom: 16px">
+			<RadzenButton Click="@ClearSelection" Text="Очистить" Style="margin-right: 1%" />
+			<RadzenButton Icon="add_circle_outline" Text="Create" Click="@CreateClick" Style="margin-right: 1%" Disabled=@(cookieToUpdate != null) />
+			<RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRowAsync(selectedCookie[0]))" @onclick:stopPropagation="true" Style="margin-right: 1%" />
+			<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(args => DeleteAsync(selectedCookie[0].Id))" @onclick:stopPropagation="true" Style="margin-right: 1%" />
+			@if (selectedCookie?.Any() == true)
+			{
+				<div style="margin-left: 16px">
+					Selected Cookie: @selectedCookie[0].Name
+				</div>
+			}
+		</div>
+		<RadzenDataGrid AllowAlternatingRows="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="10"
+						AllowSorting="true" Data="@cookies" EditMode="DataGridEditMode.Single" TItem="Cookie" ColumnWidth="200px"
+						SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedCookie>
+			<Columns>
+				<RadzenDataGridColumn TItem="Cookie" Property="Id" Title="Id">
+					<EditTemplate Context="cookie">
+						<RadzenNumeric @bind-Value="cookie.Id" Style="width:100%; display: block" Name="Id" />
+					</EditTemplate>
+				</RadzenDataGridColumn>
+				<RadzenDataGridColumn TItem="Cookie" Property="Name" Title="Название">
+					<EditTemplate Context="brand">
+						<RadzenTextBox @bind-Value="brand.Name" Style="width: 100%; display: block" Name="Name" />
+						<RadzenRequiredValidator Text="Name is required" Component="Name" Popup="true" />
+					</EditTemplate>
+				</RadzenDataGridColumn>
+			</Columns>
+		</RadzenDataGrid>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public string ErrorMessage { get; set; }
+
+	RadzenDataGrid<Cookie> cookieGrid;
+	IEnumerable<Cookie> cookies;
+	IList<Cookie> selectedCookie;
+	Cookie cookieToUpdate;
+	List<IModalReference> counter = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			cookies = await CookieService.GetAllAsync();
+			selectedCookie = cookies.Take(1).ToList();
+		}
+		catch (Exception ex)
+		{
+			ErrorMessage = ex.Message;
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = ex.Message });
+		}
+	}
+
+	async Task EditRowAsync(Cookie cookie)
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "У тебя уже открыто одно модальное окно" });
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(Cookie.Id), cookie.Id);
+		parameters.Add(nameof(Cookie_Modal.Mode), ModalEnum.Update);
+
+		var formModal = Modal.Show<Cookie_Modal>("Изменить Печенье", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		cookies = await CookieService.GetAllAsync();
+	}
+
+	private async Task DeleteAsync(Guid id)
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "У тебя уже открыто одно модальное окно" });
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(Cookie.Id), id);
+		parameters.Add(nameof(Cookie_Modal.Mode), ModalEnum.Delete);
+
+		var formModal = Modal.Show<Cookie_Modal>("Удалить печенье", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		cookies = await CookieService.GetAllAsync();
+	}
+
+	void ClearSelection()
+	{
+		selectedCookie = null;
+	}
+
+	private async Task CreateClick()
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "У тебя уже открыто одно модальное окно");
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(Cookie.Id), Guid.Empty);
+		parameters.Add(nameof(Cookie_Modal.Mode), ModalEnum.Create);
+
+		var formModal = Modal.Show<Cookie_Modal>("Создать печенье", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		cookies = await CookieService.GetAllAsync();
+	}
+
+	private void AddModal(IModalReference modal)
+	{
+		counter.Add(modal);
+	}
+
+	private void ClearModalCount()
+	{
+		counter.Clear();
+	}
+}

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using confectionery_back.DataContext;
 
@@ -11,9 +12,11 @@ using confectionery_back.DataContext;
 namespace confectionery_back.Migrations
 {
     [DbContext(typeof(ConfectionaryContext))]
-    partial class ConfectionaryContextModelSnapshot : ModelSnapshot
+    [Migration("20240129172428_newParams")]
+    partial class newParams
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,9 +106,6 @@ namespace confectionery_back.Migrations
                     b.Property<int>("PrepaymentAmout")
                         .HasColumnType("int");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("int");
-
                     b.Property<int>("Product")
                         .HasColumnType("int");
 
@@ -114,9 +114,6 @@ namespace confectionery_back.Migrations
 
                     b.Property<Guid?>("SecondFilling")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("SecondWeight")
-                        .HasColumnType("int");
 
                     b.Property<int>("Weight")
                         .HasColumnType("int");

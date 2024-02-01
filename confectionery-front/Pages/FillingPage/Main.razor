@@ -1,0 +1,145 @@
+﻿@page "/fillings"
+@inject IFillingService FillingService
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+@inject IModalService Modal
+
+<PageTitle>Начинки</PageTitle>
+
+<h3>Начинки</h3>
+<div class="row" style="width: 100%; margin-bottom: 10px;">
+	<div class="col-md-8" style="width: 50%">
+		<div style="display: flex; align-items: center; margin-bottom: 16px">
+			<RadzenButton Click="@ClearSelection" Text="Очистить" Style="margin-right: 1%" />
+			<RadzenButton Icon="add_circle_outline" Text="Create" Click="@CreateClick" Style="margin-right: 1%" Disabled=@(fillingToUpdate != null) />
+			<RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRowAsync(selectedFilling[0]))" @onclick:stopPropagation="true" Style="margin-right: 1%" />
+			<RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" Class="my-1 ms-1" Click="@(args => DeleteAsync(selectedFilling[0].Id))" @onclick:stopPropagation="true" Style="margin-right: 1%" />
+			@if (selectedFilling?.Any() == true)
+			{
+				<div style="margin-left: 16px">
+					Selected Cookie: @selectedFilling[0].Name
+				</div>
+			}
+		</div>
+		<RadzenDataGrid AllowAlternatingRows="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="10"
+						AllowSorting="true" Data="@fillings" EditMode="DataGridEditMode.Single" TItem="Filling" ColumnWidth="200px"
+						SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedFilling>
+			<Columns>
+				<RadzenDataGridColumn TItem="Filling" Property="Id" Title="Id">
+					<EditTemplate Context="cookie">
+						<RadzenNumeric @bind-Value="cookie.Id" Style="width:100%; display: block" Name="Id" />
+					</EditTemplate>
+				</RadzenDataGridColumn>
+				<RadzenDataGridColumn TItem="Filling" Property="Name" Title="Название">
+					<EditTemplate Context="brand">
+						<RadzenTextBox @bind-Value="brand.Name" Style="width: 100%; display: block" Name="Name" />
+						<RadzenRequiredValidator Text="Name is required" Component="Name" Popup="true" />
+					</EditTemplate>
+				</RadzenDataGridColumn>
+			</Columns>
+		</RadzenDataGrid>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public string ErrorMessage { get; set; }
+
+	RadzenDataGrid<Filling> fillingGrid;
+	IEnumerable<Filling> fillings;
+	IList<Filling> selectedFilling;
+	Filling fillingToUpdate;
+	List<IModalReference> counter = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			fillings = await FillingService.GetAllAsync();
+			selectedFilling = fillings.Take(1).ToList();
+		}
+		catch (Exception ex)
+		{
+			ErrorMessage = ex.Message;
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = ex.Message });
+		}
+	}
+
+	async Task EditRowAsync(Filling filling)
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "У тебя уже открыто одно модальное окно" });
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(Filling.Id), filling.Id);
+		parameters.Add(nameof(Filling_Modal.Mode), ModalEnum.Update);
+
+		var formModal = Modal.Show<Filling_Modal>("Изменить начинку", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		fillings = await FillingService.GetAllAsync();
+	}
+
+	private async Task DeleteAsync(Guid id)
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "У тебя уже открыто одно модальное окно" });
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(Filling.Id), id);
+		parameters.Add(nameof(Filling_Modal.Mode), ModalEnum.Delete);
+
+		var formModal = Modal.Show<Filling_Modal>("Удалить начинку", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		fillings = await FillingService.GetAllAsync();
+	}
+
+	void ClearSelection()
+	{
+		selectedFilling = null;
+	}
+
+	private async Task CreateClick()
+	{
+		if (counter.Count > 0)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "У тебя уже открыто одно модальное окно");
+			return;
+		}
+
+		var parameters = new ModalParameters();
+		parameters.Add(nameof(Filling.Id), Guid.Empty);
+		parameters.Add(nameof(Filling_Modal.Mode), ModalEnum.Create);
+
+		var formModal = Modal.Show<Filling_Modal>("Создать начинку", parameters);
+
+		AddModal(formModal);
+
+		var result = await formModal.Result;
+		ClearModalCount();
+		fillings = await FillingService.GetAllAsync();
+	}
+
+	private void AddModal(IModalReference modal)
+	{
+		counter.Add(modal);
+	}
+
+	private void ClearModalCount()
+	{
+		counter.Clear();
+	}
+}

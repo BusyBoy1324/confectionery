@@ -1,24 +1,262 @@
 ﻿@page "/"
+@inject IOrderService OrderService
+@inject IUserService UserService
+@inject IFillingService FillingService
+@inject ICookieService CookieService
+@inject IBiscuitService BiscuitService
+@inject NotificationService NotificationService
 
 <PageTitle>Strawann Confectionery</PageTitle>
 
-@if (GetCount() == 0) {
+<RadzenSelectBar @bind-Value="isCompletedOrders" TValue="bool" class="mb-5" Change="FilterCompletedOrdersAsync">
+    <Items>
+        <RadzenSelectBarItem  Icon="assignment" IconColor="@Colors.Info" Value="false" />
+        <RadzenSelectBarItem Icon="check_circle" IconColor="@Colors.Success" Value="true" />
+    </Items>
+</RadzenSelectBar>
+
+@if (orders.Count == 0 && isCompletedOrders == false) 
+{
     <h2>На данный момент у вас нет активных заказов</h2>
     return;
 }
 
-@code {
-    List<OrderViewModel> Orders = new();
-
-    private int GetCount()
+    @for (int i = 0; i < orders.Count; i++)
     {
-        int result = 0;
-        foreach (var order in Orders)
+        ordersRowList = orders.Skip(i * ordersPerRow).Take(ordersPerRow).ToList();
+        <div class="row mt-4">
+            @foreach (var order in ordersRowList)
+            {
+                <RadzenCard Class="rz-my-12 rz-mx-auto" Style="max-width: 420px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
+                        <img src="data:image/bmp;base64, @(Convert.ToBase64String(order.Image))" style="width: 100px; height: 100px; border-radius: 50%;" />
+                        <RadzenStack Gap="0">
+                            @if (order.Product == ProductEnum.Торт || order.Product == ProductEnum.Бенто)
+                            {
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Продукт</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(order.Product)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Начинка</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@GetFilling(order.Filling.Value)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Бисквит</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@GetBiscuit(order.Dough)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Вес</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@order.Weight</b></RadzenText>
+                            }
+                            @if (order.Product == ProductEnum.Капкейки)
+                            {
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Продукт</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(order.Product)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Начинка</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@GetFilling(order.Filling.Value)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Бисквит</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@GetBiscuit(order.Dough)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Кол-во</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@order.Weight</b></RadzenText>
+                            }
+                            @if (order.Product == ProductEnum.Печенье)
+                            {
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Продукт</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(order.Product)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Тесто</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@GetCookie(order.Dough)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Вес</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@order.Weight</b></RadzenText>
+                            }
+                            @if (order.Product == ProductEnum.Набор)
+                            {
+                                <RadzenRow Gap="2rem">
+                                    <RadzenColumn>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>Торт</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Начинка</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>@GetFilling(order.Filling.Value)</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Бисквит</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>@GetBiscuit(order.Dough)</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Вес</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>@order.Weight</b></RadzenText>
+                                    </RadzenColumn>
+                                    <RadzenColumn>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>Капкейки</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Начинка</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>@GetFilling(order.SecondFilling.Value)</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Бисквит</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>@GetBiscuit(order.SecondDough)</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Кол-во</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>@order.SecondWeight</b></RadzenText>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            }
+                        </RadzenStack>
+                    </RadzenStack>
+                    <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding)); background-color: #59b779;">
+                        <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light"><strong>Информация по доставке</strong></RadzenText>
+                        <RadzenRow RowGap="0">
+                            <RadzenColumn SizeSM="4">
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Дата</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@(GetCorrectDateTime(order.IssuedDateTime))</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Вид доставки</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@(order.DeliveryMethod)</b></RadzenText>
+                            </RadzenColumn>
+                            <RadzenColumn SizeSM="8">
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Клиент</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@(GetClientName(order.ClientId))</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Цена</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@order.Price</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Предоплата</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@order.PrepaymentAmout</b></RadzenText>
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenCard>
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0">
+                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditAsync(order))" />
+                    @if (!isCompletedOrders)
+                    {
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Variant="Variant.Text" class="rz-text-secondary-color" Text="Выполнен!" Click="@(args => CompletedAsync(order))" />
+                    }
+                    </RadzenStack>
+                </RadzenCard>
+            }
+        </div>
+    }
+
+@code {
+    bool isCompletedOrders = false;
+    List<Order> orders = new();
+    const int ordersPerRow = 4;
+    List<Order> ordersRowList = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
         {
-            result++;
+            orders = await OrderService.GetAllIncompletedAsync();
+            orders.Sort((x, y) => -y.IssuedDateTime.CompareTo(x.IssuedDateTime));
         }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+    }
+
+    public async Task FilterCompletedOrdersAsync()
+    {
+        try
+        {
+            if (isCompletedOrders)
+            {
+                orders = await OrderService.GetAllCompletedAsync();
+            }
+            else
+            {
+                orders = await OrderService.GetAllIncompletedAsync();
+                orders.Sort((x, y) => -y.IssuedDateTime.CompareTo(x.IssuedDateTime));
+            }
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+    }
+
+    public async Task CompletedAsync(Order order)
+    {
+        try 
+        {
+            order.IsCompleted = true;
+            await OrderService.UpdateAsync(order);
+            orders = await OrderService.GetAllIncompletedAsync();
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }        
+    }
+
+    public async Task EditAsync(Order order)
+    {
+        
+    }
+
+    public string GetCorrectDateTime(DateTime dateTime)
+    {
+        string result = dateTime.ToString("dd/MM/yyyy HH:mm");
 
         return result;
+    }
+
+    public string GetBiscuit(Guid id)
+    {
+        Biscuit biscuit = new();
+
+        try
+        {
+            Task.Run(async () =>
+            {
+                biscuit = await BiscuitService.GetByIdAsync(id);
+            }).Wait();
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+
+        return biscuit.Name;
+    }
+
+    public string GetCookie(Guid id)
+    {
+        Cookie currentDought = new();
+
+        try
+        {
+            Task.Run(async () =>
+            {
+                currentDought = await CookieService.GetByIdAsync(id);
+            }).Wait();
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+
+        return currentDought.Name;
+    }
+
+    public string GetFilling(Guid id)
+    {
+        Filling currentFilling = new();
+
+        try
+        {
+            Task.Run(async () =>
+            {
+                currentFilling = await FillingService.GetByIdAsync(id);
+            }).Wait();
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+
+        return currentFilling.Name;
+    }
+
+    public string GetClientName(Guid id)
+    {
+        User currentUser = new();
+
+        try
+        {
+            Task.Run(async () =>
+            {
+                currentUser = await UserService.GetByIdAsync(id);
+            }).Wait();
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+
+        return currentUser.UserName;
     }
 }
 

@@ -53,8 +53,8 @@ namespace confectionery_back.Controllers
             return Ok(_mapper.Map<UserViewModel>(updatedUser));
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<List<UserViewModel>>> DeleteAsync(Guid id)
+        [HttpDelete]
+        public async Task<ActionResult<List<UserViewModel>>> DeleteAsync([FromQuery] Guid id)
         {
             await _userService.DeleteAsync(id);
             var users = await _userService.GetAllAsync();
