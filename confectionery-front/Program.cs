@@ -13,6 +13,7 @@ using confectionery_front.Services.OrderServices;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<DialogService>();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
@@ -24,7 +25,6 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFillingService, FillingService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<NotificationService>();
-builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<TooltipService>();
 builder.Services.AddBlazoredModal();
 builder.Services.AddHttpContextAccessor();

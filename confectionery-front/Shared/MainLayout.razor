@@ -3,12 +3,10 @@
 
 <PageTitle>confectionery-front</PageTitle>
 
-<head>
-    <MudThemeProvider />
-    <MudDialogProvider />
-    <MudSnackbarProvider />
-    <RadzenNotification />
-</head>
+<RadzenDialog />
+<MudThemeProvider />
+<MudSnackbarProvider />
+<RadzenNotification />
 
 <style>
     body {
@@ -40,6 +38,7 @@
         @Body
     </MudContainer>
 </MudMainContent>
+
 @code {
     bool open = false;
     bool dense = false;

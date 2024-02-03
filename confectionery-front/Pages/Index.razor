@@ -4,7 +4,9 @@
 @inject IFillingService FillingService
 @inject ICookieService CookieService
 @inject IBiscuitService BiscuitService
+@inject IModalService Modal
 @inject NotificationService NotificationService
+@inject DialogService DialogService
 
 <PageTitle>Strawann Confectionery</PageTitle>
 
@@ -107,7 +109,8 @@
                         </RadzenRow>
                     </RadzenCard>
                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0">
-                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditAsync(order))" />
+                    <RadzenButton Icon="announcement" ButtonStyle="ButtonStyle.Secondary" Style="margin-right: 10px;" Click=@(args => ShowCloseableFromOverlayDialog(order)) Disabled="order.Comment == string.Empty" />
+                    <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Style="margin-right: 10px;" Size="ButtonSize.Medium" Click="@(args => EditAsync(order))" />
                     @if (!isCompletedOrders)
                     {
                         <RadzenButton ButtonStyle="ButtonStyle.Success" Variant="Variant.Text" class="rz-text-secondary-color" Text="Выполнен!" Click="@(args => CompletedAsync(order))" />
@@ -135,6 +138,15 @@
         {
             NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
         }
+    }
+
+    async Task ShowCloseableFromOverlayDialog(Order order)
+    {
+            await DialogService.OpenAsync("Комментарий", ds =>
+        @<div>
+            @order.Comment
+    </div>
+    , new DialogOptions() { CloseDialogOnOverlayClick = true});
     }
 
     public async Task FilterCompletedOrdersAsync()
@@ -173,7 +185,19 @@
 
     public async Task EditAsync(Order order)
     {
-        
+        await DialogService.OpenAsync<EditDialogPage>($"Редакатирование заказа  {order.Id}",
+            new Dictionary<string, object>() { { "OrderID", order.Id } },
+            new DialogOptions() { Width = "1000px", Height = "700px", Resizable = true, Draggable = true });
+
+        Console.WriteLine("Edit");
+
+        if (isCompletedOrders)
+        {
+            orders = await OrderService.GetAllCompletedAsync();
+            return;
+        }
+
+        orders = await OrderService.GetAllIncompletedAsync();
     }
 
     public string GetCorrectDateTime(DateTime dateTime)

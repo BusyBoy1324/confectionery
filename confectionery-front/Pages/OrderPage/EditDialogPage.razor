@@ -1,0 +1,730 @@
+﻿@page "/dialogcard/{OrderID}"
+@inject IOrderService orderService
+@inject IUserService userService
+@inject IBiscuitService biscuitService
+@inject ICookieService cookieService
+@inject IFillingService fillingService
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+
+    @*ТОРТЫ И БЕНТО*@
+    @if (order.Product == ProductEnum.Торт || order.Product == ProductEnum.Бенто)
+    {
+        <RadzenTemplateForm Data="@order">
+            <RadzenRow Gap="2rem">
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Информация про продукт">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Продукт" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="choosenProduct" Placeholder="Выбери продукт" Data="@productionEnums"
+                                                Style="width: 100%;" Change="OnProductDrowDownChanged"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Начинка" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.Filling" Placeholder="Выбери начинку" Data="@fillings"
+                                                Style="width: 100%;" TextProperty="@nameof(Filling.Name)"
+                                                ValueProperty="@nameof(Filling.Id)" Name="@nameof(Filling.Name)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Бисквит" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.Dough" Placeholder="Выбери бисквит" Data="@biscuits"
+                                                Style="width: 100%;" TextProperty="@nameof(Biscuit.Name)"
+                                                ValueProperty="@nameof(Biscuit.Id)" Name="@nameof(Biscuit.Name)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Вес" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenNumeric @bind-Value="order.Weight" Placeholder="Введи вес"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Картинка" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <BlazorInputFile.InputFile OnChange="HandleFileSelected"></BlazorInputFile.InputFile>
+                                        <RadzenLabel Visible=@showComplete class="mt-4" Text=@completionMessage />
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Информация о заказе">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Дата"/>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                    <RadzenDatePicker @bind-Value=@order.IssuedDateTime
+                                                  DateFormat="dd/MM/yyyy" Name="DatePicker"/>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Время" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDatePicker @bind-Value=@order.IssuedDateTime 
+                                                  ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Name="DatePickerTimeOnly" Change="@(args => ChangeTime(args))"/>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Передача заказа" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDropDown @bind-Value="choosenDeliveryMethod" Placeholder="Выбери метод передачи" Data="@deliveryMethodEnums"
+                                                Style="width: 100%;" Change="OnDeliveryDrowDownChanged"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Клиент" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDropDown @bind-Value="order.ClientId" Placeholder="Выбери клиента" Data="@clients"
+                                                Style="width: 100%;" TextProperty="@nameof(User.UserName)"
+                                                ValueProperty="@nameof(User.Id)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Цена" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenNumeric @bind-Value="order.Price" Placeholder="Введи цену заказа"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Предоплата" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenCheckBox @bind-Value="order.IsPrepayment"></RadzenCheckBox>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                @if (order.IsPrepayment)
+                                {
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="3">
+                                            <RadzenLabel Text="Предоплата" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="9">
+                                            <RadzenNumeric @bind-Value="order.PrepaymentAmout" Placeholder="Введи сумму предоплаты"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                }
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Комментарий" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenTextArea @bind-Value="order.Comment" Placeholder="Оставь свой комментарий к заказу, если такой необходим"
+                                               Style="width: 100%; height: 100px;"></RadzenTextArea>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+                <RadzenButton Size="ButtonSize.Medium" Icon="edit" Text="Сохранить" Click="Submit" />
+            </RadzenStack>
+        </RadzenTemplateForm>
+    }
+
+    @*КАПКЕЙКИ*@
+
+    @if (order.Product == ProductEnum.Капкейки)
+    {
+        <RadzenTemplateForm Data="@order">
+            <RadzenRow Gap="2rem">
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Информация про продукт">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Продукт" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="choosenProduct" Placeholder="Выбери продукт" Data="@productionEnums"
+                                                Style="width: 100%;" Change="OnProductDrowDownChanged"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Начинка" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.Filling" Placeholder="Выбери начинку" Data="@fillings"
+                                                Style="width: 100%;" TextProperty="@nameof(Filling.Name)"
+                                                ValueProperty="@nameof(Filling.Id)" Name="@nameof(Filling.Name)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Бисквит" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.Dough" Placeholder="Выбери бисквит" Data="@biscuits"
+                                                Style="width: 100%;" TextProperty="@nameof(Biscuit.Name)"
+                                                ValueProperty="@nameof(Biscuit.Id)" Name="@nameof(Biscuit.Name)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Кол-во" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.Weight" Placeholder="Выбери количество, шт." Data="@cupcakeQuantity"
+                                                Style="width: 100%;"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Картинка" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <BlazorInputFile.InputFile OnChange="HandleFileSelected"></BlazorInputFile.InputFile>
+                                        <RadzenLabel Visible=@showComplete class="mt-4" Text=@completionMessage />
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Информация о заказе">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Дата"/>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDatePicker @bind-Value=@order.IssuedDateTime  
+                                        DateFormat="dd/MM/yyyy" Name="DatePicker"/>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Время" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDatePicker @bind-Value=@order.IssuedDateTime 
+                                                  ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Name="DatePickerTimeOnly" Change="@(args => ChangeTime(args))"/>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Передача заказа" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDropDown @bind-Value="choosenDeliveryMethod" Placeholder="Выбери метод передачи" Data="@deliveryMethodEnums"
+                                                Style="width: 100%;" Change="OnDeliveryDrowDownChanged"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Клиент" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDropDown @bind-Value="order.ClientId" Placeholder="Выбери клиента" Data="@clients"
+                                                Style="width: 100%;" TextProperty="@nameof(User.UserName)"
+                                                ValueProperty="@nameof(User.Id)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Цена" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenNumeric @bind-Value="order.Price" Placeholder="Введи цену заказа"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Предоплата" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenCheckBox @bind-Value="order.IsPrepayment"></RadzenCheckBox>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                @if (order.IsPrepayment)
+                                {
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="3">
+                                            <RadzenLabel Text="Предоплата" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="9">
+                                            <RadzenNumeric @bind-Value="order.PrepaymentAmout" Placeholder="Введи сумму предоплаты"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                }
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Комментарий" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenTextArea @bind-Value="order.Comment" Placeholder="Оставь свой комментарий к заказу, если такой необходим"
+                                               Style="width: 100%; height: 100px;"></RadzenTextArea>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+                <RadzenButton Size="ButtonSize.Medium" Icon="edit" Text="Сохранить" Click="Submit" />
+            </RadzenStack>
+        </RadzenTemplateForm>
+    }
+
+    @*ПЕЧЕНЬЕ*@
+
+    @if (order.Product == ProductEnum.Печенье)
+    {
+        <RadzenTemplateForm Data="@order">
+            <RadzenRow Gap="2rem">
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Информация про продукт">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Продукт" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="choosenProduct" Placeholder="Выбери продукт" Data="@productionEnums"
+                                                Style="width: 100%;" Change="OnProductDrowDownChanged"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Тесто" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.Dough" Placeholder="Выбери тесто" Data="@cookies"
+                                                Style="width: 100%;" TextProperty="@nameof(Cookie.Name)"
+                                                ValueProperty="@nameof(Cookie.Id)" Name="@nameof(Cookie.Name)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Вес" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenNumeric @bind-Value="order.Weight" Placeholder="Введи вес"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Картинка" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <BlazorInputFile.InputFile OnChange="HandleFileSelected"></BlazorInputFile.InputFile>
+                                        <RadzenLabel Visible=@showComplete class="mt-4" Text=@completionMessage />
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Информация о заказе">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Дата"/>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDatePicker @bind-Value=@order.IssuedDateTime  
+                                        DateFormat="dd/MM/yyyy" Name="DatePicker"/>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Время" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDatePicker @bind-Value=@order.IssuedDateTime 
+                                                  ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Name="DatePickerTimeOnly" Change="@(args => ChangeTime(args))"/>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Передача заказа" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDropDown @bind-Value="choosenDeliveryMethod" Placeholder="Выбери метод передачи" Data="@deliveryMethodEnums"
+                                                Style="width: 100%;" Change="OnDeliveryDrowDownChanged"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Клиент" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDropDown @bind-Value="order.ClientId" Placeholder="Выбери клиента" Data="@clients"
+                                                Style="width: 100%;" TextProperty="@nameof(User.UserName)"
+                                                ValueProperty="@nameof(User.Id)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Цена" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenNumeric @bind-Value="order.Price" Placeholder="Введи цену заказа"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Предоплата" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenCheckBox @bind-Value="order.IsPrepayment"></RadzenCheckBox>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                @if (order.IsPrepayment)
+                                {
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="3">
+                                            <RadzenLabel Text="Предоплата" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="9">
+                                            <RadzenNumeric @bind-Value="order.PrepaymentAmout" Placeholder="Введи сумму предоплаты"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                }
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Комментарий" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenTextArea @bind-Value="order.Comment" Placeholder="Оставь свой комментарий к заказу, если такой необходим"
+                                               Style="width: 100%; height: 100px;"></RadzenTextArea>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+                <RadzenButton Size="ButtonSize.Medium" Icon="edit" Text="Сохранить" Click="Submit" />
+            </RadzenStack>
+        </RadzenTemplateForm>
+    }
+
+    @*НАБОР*@
+
+    @if (order.Product == ProductEnum.Набор)
+    {
+        <RadzenTemplateForm Data="@order">
+            <RadzenRow Gap="2rem">
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Торт">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Продукт" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="choosenProduct" Placeholder="Выбери продукт" Data="@productionEnums"
+                                                Style="width: 100%;" Change="OnProductDrowDownChanged"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Начинка" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.Filling" Placeholder="Выбери начинку" Data="@fillings"
+                                                Style="width: 100%;" TextProperty="@nameof(Filling.Name)"
+                                                ValueProperty="@nameof(Filling.Id)" Name="@nameof(Filling.Name)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Бисквит" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.Dough" Placeholder="Выбери бисквит" Data="@biscuits"
+                                                Style="width: 100%;" TextProperty="@nameof(Biscuit.Name)"
+                                                ValueProperty="@nameof(Biscuit.Id)" Name="@nameof(Biscuit.Name)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Вес" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenNumeric @bind-Value="order.Weight" Placeholder="Введи вес"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Картинка" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <BlazorInputFile.InputFile OnChange="HandleFileSelected"></BlazorInputFile.InputFile>
+                                        <RadzenLabel Visible=@showComplete class="mt-4" Text=@completionMessage />
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                        <RadzenFieldset Text="Капкейки">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Начинка" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.SecondFilling" Placeholder="Выбери начинку" Data="@fillings"
+                                                Style="width: 100%;" TextProperty="@nameof(Filling.Name)"
+                                                ValueProperty="@nameof(Filling.Id)" Name="@nameof(Filling.Name)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Бисквит" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.SecondDough" Placeholder="Выбери бисквит" Data="@biscuits"
+                                                Style="width: 100%;" TextProperty="@nameof(Biscuit.Name)"
+                                                ValueProperty="@nameof(Biscuit.Id)" Name="@nameof(Biscuit.Name)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Кол-во" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenDropDown @bind-Value="order.SecondWeight" Placeholder="Выбери количество, шт." Data="@cupcakeQuantitySet"
+                                                Style="width: 100%;"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenStack>
+                        <RadzenFieldset Text="Информация о заказе">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Дата"/>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDatePicker @bind-Value=@order.IssuedDateTime 
+                                        DateFormat="dd/MM/yyyy" Name="DatePicker"/>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Время" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDatePicker @bind-Value=@order.IssuedDateTime 
+                                                  ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Name="DatePickerTimeOnly" Change="@(args => ChangeTime(args))"/>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Передача заказа" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDropDown @bind-Value="choosenDeliveryMethod" Placeholder="Выбери метод передачи" Data="@deliveryMethodEnums"
+                                                Style="width: 100%;" Change="OnDeliveryDrowDownChanged"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Клиент" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenDropDown @bind-Value="order.ClientId" Placeholder="Выбери клиента" Data="@clients"
+                                                Style="width: 100%;" TextProperty="@nameof(User.UserName)"
+                                                ValueProperty="@nameof(User.Id)"></RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Цена" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenNumeric @bind-Value="order.Price" Placeholder="Введи цену заказа"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Предоплата" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenCheckBox @bind-Value="order.IsPrepayment"></RadzenCheckBox>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                @if (order.IsPrepayment)
+                                {
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="3">
+                                            <RadzenLabel Text="Предоплата" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="9">
+                                            <RadzenNumeric @bind-Value="order.PrepaymentAmout" Placeholder="Введи сумму предоплаты"
+                                               Style="width: 100%;"></RadzenNumeric>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                }
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenLabel Text="Комментарий" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="9">
+                                        <RadzenTextArea @bind-Value="order.Comment" Placeholder="Оставь свой комментарий к заказу, если такой необходим"
+                                               Style="width: 100%; height: 100px;"></RadzenTextArea>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+                <RadzenButton Size="ButtonSize.Medium" Icon="edit" Text="Сохранить" Click="Submit" />
+            </RadzenStack>
+        </RadzenTemplateForm>
+        }
+
+@code {
+    [Parameter] public Guid OrderID { get; set; }
+
+    Order order = new();
+    List<string> productionEnums = new();
+    List<string> deliveryMethodEnums = new();
+    List<int> cupcakeQuantity = new() { 6, 9, 12 };
+    List<int> cupcakeQuantitySet = new() { 5, 8 };
+    string? choosenProduct;
+    string? choosenDeliveryMethod;
+    List<Filling> fillings = new();
+    List<User> clients = new();
+    List<Biscuit> biscuits = new();
+    List<Cookie> cookies = new();
+    bool showComplete;
+    string completionMessage;
+    byte[] UploadedImage = new byte[1];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        GetEnumList();
+
+        try
+        {
+            order = await orderService.GetByIdAsync(OrderID);
+            choosenProduct = ((ProductEnum)order.Product).ToString();
+            choosenDeliveryMethod = ((DeliveryMethodEnum)order.DeliveryMethod).ToString();
+            UploadedImage = order.Image;
+
+            fillings = await fillingService.GetAllAsync();
+            clients = await userService.GetAllAsync();
+            biscuits = await biscuitService.GetAllAsync();
+            cookies = await cookieService.GetAllAsync();
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+    }
+
+    public void GetEnumList()
+    {
+        productionEnums = Enum.GetNames(typeof(ProductEnum)).ToList();
+        deliveryMethodEnums = Enum.GetNames(typeof(DeliveryMethodEnum)).ToList();
+    }
+
+    private void OnProductDrowDownChanged()
+    {
+        ProductEnum product = Enum.Parse<ProductEnum>(choosenProduct);
+        order.Product = product;
+    }
+
+    private void OnDeliveryDrowDownChanged()
+    {
+        DeliveryMethodEnum deliveryMethodEnum = Enum.Parse<DeliveryMethodEnum>(choosenDeliveryMethod);
+        order.DeliveryMethod = deliveryMethodEnum;
+    }
+
+    async Task HandleFileSelected(IFileListEntry[] files)
+    {
+        var file = files.FirstOrDefault();
+        if (file is not null)
+        {
+            var memoryStream = new MemoryStream();
+            await file.Data.CopyToAsync(memoryStream);
+            UploadedImage = memoryStream.ToArray();
+            order.Image = UploadedImage;
+            completionMessage = "Загрузка завершена!";
+            showComplete = true;
+        }
+    }
+
+    public void ChangeTime(DateTime? args)
+    {
+        order.IssuedDateTime = args.Value;
+        TimeSpan time = new TimeSpan(args.Value.Hour, args.Value.Minute, 0);
+        order.IssuedDateTime = order.IssuedDateTime.Date + time;
+
+        Console.WriteLine(order.IssuedDateTime);
+    }
+
+    public async Task Submit()
+    {
+        try
+        {
+            await orderService.UpdateAsync(order);
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+    }
+}
