@@ -59,7 +59,7 @@
         foreach(var item in pieChartView)
         {
             var percent = (double)(100 * item.Count) / total;
-            item.Percent = percent;
+            item.Percent = double.Parse(string.Format("{0:00.00}", percent));
         }
 
         piieChart = pieChartView.ToArray();

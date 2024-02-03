@@ -36,6 +36,12 @@
 						<RadzenRequiredValidator Text="UserName is required" Component="UserName" Popup="true" />
 					</EditTemplate>
 				</RadzenDataGridColumn>
+				<RadzenDataGridColumn TItem="User" Property="@nameof(User.OrderCounter)" Title="Количество заказов">
+					<EditTemplate Context="user">
+						<RadzenNumeric @bind-Value="user.OrderCounter" Style="width: 100%; display: block" Name="OrderCounter" />
+						<RadzenRequiredValidator Text="OrderCounter is required" Component="OrderCounter" Popup="true" />
+					</EditTemplate>
+				</RadzenDataGridColumn>
 			</Columns>
 		</RadzenDataGrid>
 	</div>
