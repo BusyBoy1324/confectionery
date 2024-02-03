@@ -1,0 +1,67 @@
+﻿@page "/statistic"
+@using System.Text;
+@inject IOrderService orderService
+@inject NotificationService NotificationService
+
+<h3>Продукция</h3>
+
+<div class="row">
+    <div class="col-sm-12 col-lg-6">
+        <RadzenChart SeriesClick=@OnSeriesClick>
+            <RadzenPieSeries Data="@piieChart" Title="Процент" CategoryProperty="Product" ValueProperty="Percent">
+                <RadzenSeriesDataLabels Visible="@showDataLabels" />
+            </RadzenPieSeries>
+        </RadzenChart>
+    </div>
+</div>
+
+@code {
+    List<Order> orders = new();
+    Dictionary<string, int> pieDict = new();
+    List<PieChartViewModel> pieChartView = new();
+    PieChartViewModel[] piieChart;
+    bool showDataLabels = false;
+
+    void OnSeriesClick(SeriesClickEventArgs args)
+    {
+        Console.WriteLine(args);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            orders = await orderService.GetAllAsync();
+            CalculatePercents();
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+    }
+
+    private void CalculatePercents()
+    {
+        var cheaters = orders.GroupBy(p => p.Product);
+
+        foreach(var c in cheaters)
+        {
+            PieChartViewModel pieItem = new();
+            pieItem.Product = c.Key.ToString();
+            pieItem.Count = c.Count();
+            pieChartView.Add(pieItem);
+
+            pieDict.Add(c.Key.ToString(), c.Count());
+        }
+
+        int total = pieDict.Sum(v => v.Value);
+
+        foreach(var item in pieChartView)
+        {
+            var percent = (double)(100 * item.Count) / total;
+            item.Percent = percent;
+        }
+
+        piieChart = pieChartView.ToArray();
+    }
+}

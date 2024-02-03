@@ -89,22 +89,22 @@
                             }
                         </RadzenStack>
                     </RadzenStack>
-                    <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding)); background-color: #59b779;">
-                        <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light"><strong>Информация по доставке</strong></RadzenText>
+                    <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding)); background-color: #F2D4D7;">
+                        <RadzenText TextStyle="TextStyle.H6"><strong>Информация по доставке</strong></RadzenText>
                         <RadzenRow RowGap="0">
                             <RadzenColumn SizeSM="4">
-                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Дата</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@(GetCorrectDateTime(order.IssuedDateTime))</b></RadzenText>
-                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Вид доставки</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@(order.DeliveryMethod)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Дата</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" ><b>@(GetCorrectDateTime(order.IssuedDateTime))</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Вид доставки</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(order.DeliveryMethod)</b></RadzenText>
                             </RadzenColumn>
                             <RadzenColumn SizeSM="8">
-                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Клиент</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@(GetClientName(order.ClientId))</b></RadzenText>
-                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Цена</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@order.Price</b></RadzenText>
-                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Предоплата</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@order.PrepaymentAmout</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Клиент</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" ><b>@(GetClientName(order.ClientId))</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Цена</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@order.Price</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Предоплата</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@order.PrepaymentAmout</b></RadzenText>
                             </RadzenColumn>
                         </RadzenRow>
                     </RadzenCard>
@@ -198,6 +198,7 @@
         }
 
         orders = await OrderService.GetAllIncompletedAsync();
+        orders.Sort((x, y) => -y.IssuedDateTime.CompareTo(x.IssuedDateTime))
     }
 
     public string GetCorrectDateTime(DateTime dateTime)
