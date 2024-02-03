@@ -198,7 +198,7 @@
         }
 
         orders = await OrderService.GetAllIncompletedAsync();
-        orders.Sort((x, y) => -y.IssuedDateTime.CompareTo(x.IssuedDateTime))
+        orders.Sort((x, y) => -y.IssuedDateTime.CompareTo(x.IssuedDateTime));
     }
 
     public string GetCorrectDateTime(DateTime dateTime)
