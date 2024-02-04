@@ -43,6 +43,14 @@ namespace confectionery_front.Services.OrderServices
             return await _httpService.GetAllAsync<Order>(response);
         }
 
+        public async Task<List<Order>> GetAllByDatesAsync(DateTime start, DateTime end)
+        {
+            var response = await _httpClient.GetAsync(
+                $"api/Order/filter?start={start}&&end={end}");
+
+            return await _httpService.GetAllAsync<Order>(response);
+        }
+
         public async Task<List<Order>> GetAllCompletedAsync()
         {
             var response =

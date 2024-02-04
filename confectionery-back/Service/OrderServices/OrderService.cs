@@ -22,6 +22,12 @@ namespace confectionery_back.Service.OrderServices
 			return await _context.Orders.ToListAsync();
 		}
 
+		public async Task<List<Order>> GetAllByDatesAsync(DateTime start, DateTime end)
+		{
+			return await _context.Orders.Where(d => d.IssuedDateTime.Date >= start.Date && d.IssuedDateTime.Date <= end.Date)
+				.ToListAsync();
+		}
+
 		public async Task<List<Order>> GetAllCompletedAsync()
 		{
 			return await _context.Orders.Where(c => c.IsCompleted == true).ToListAsync();

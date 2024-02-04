@@ -8,6 +8,7 @@ namespace confectionery_front.Services.OrderServices
         public Task<Order> CreateAsync(OrderDto orderDto);
         public Task<List<Order>> DeleteAsync(Guid id);
         public Task<List<Order>> GetAllAsync();
+        public Task<List<Order>> GetAllByDatesAsync(DateTime start, DateTime end);
         public Task<List<Order>> GetAllCompletedAsync();
         public Task<List<Order>> GetAllIncompletedAsync();
         public Task<Order> GetByIdAsync(Guid id);

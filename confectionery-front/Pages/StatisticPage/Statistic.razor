@@ -1,13 +1,30 @@
 ﻿@page "/statistic"
-@using System.Text;
 @inject IOrderService orderService
 @inject NotificationService NotificationService
 
-<h3>Продукция</h3>
+<h3>Статистика</h3>
+
+
+<RadzenSelectBar @bind-Value=@filterDate TValue="FilterDateEnum" class="mb-5" Change=@OnChange>
+    <Items>
+        @foreach (var filter in filterDates)
+        {
+            <RadzenSelectBarItem Text="@(((FilterDateEnum)filter).ToString())" Value="@filter"/>
+        }
+    </Items>
+</RadzenSelectBar>
+
+@if (filterDate == FilterDateEnum.Кастом)
+{
+    <RadzenDatePicker @bind-Value=@startFilterDate
+                  DateFormat="dd/MM/yyyy" Name="DatePicker" Placeholder="Начало" Change="ChangeDateAsync" />
+    <RadzenDatePicker @bind-Value=@endFilterDate
+                  DateFormat="dd/MM/yyyy" Name="DatePicker" Change="ChangeDateAsync" Placeholder="Конец"/>
+}
 
 <div class="row">
     <div class="col-sm-12 col-lg-6">
-        <RadzenChart SeriesClick=@OnSeriesClick>
+        <RadzenChart>
             <RadzenPieSeries Data="@piieChart" Title="Процент" CategoryProperty="Product" ValueProperty="Percent">
                 <RadzenSeriesDataLabels Visible="@showDataLabels" />
             </RadzenPieSeries>
@@ -16,16 +33,15 @@
 </div>
 
 @code {
+    FilterDateEnum filterDate;
+    IEnumerable<FilterDateEnum> filterDates = Enum.GetValues(typeof(FilterDateEnum)).Cast<FilterDateEnum>();
+    DateTime startFilterDate;
+    DateTime endFilterDate;
     List<Order> orders = new();
     Dictionary<string, int> pieDict = new();
     List<PieChartViewModel> pieChartView = new();
     PieChartViewModel[] piieChart;
     bool showDataLabels = false;
-
-    void OnSeriesClick(SeriesClickEventArgs args)
-    {
-        Console.WriteLine(args);
-    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -38,6 +54,24 @@
         {
             NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
         }
+    }
+
+    private async Task ChangeDateAsync()
+    {
+        try
+        {
+            orders = await orderService.GetAllByDatesAsync(startFilterDate.Date, endFilterDate.Date);
+            CalculatePercents();
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+    }
+
+    void OnChange(FilterDateEnum filterDate)
+    {
+        Console.WriteLine((int)filterDate);
     }
 
     private void CalculatePercents()
@@ -63,5 +97,7 @@
         }
 
         piieChart = pieChartView.ToArray();
+        pieChartView.Clear();
+        pieDict.Clear();
     }
 }

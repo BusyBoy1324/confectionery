@@ -29,6 +29,15 @@ namespace confectionery_back.Controllers
 			return Ok(mapped);
 		}
 
+        [HttpGet("filter")]
+        public async Task<ActionResult<List<OrderViewModel>>> GetAllByDatesAsync
+			(DateTime start, DateTime end)
+        {
+            var orders = await _orderService.GetAllByDatesAsync(start, end);
+            var mapped = _mapper.Map<List<OrderViewModel>>(orders);
+            return Ok(mapped);
+        }
+
         [HttpGet]
         [Route("completed")]
         public async Task<ActionResult<List<OrderViewModel>>> GetAllCompetedAsync()

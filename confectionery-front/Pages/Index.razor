@@ -111,6 +111,7 @@
                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0">
                     <RadzenButton Icon="announcement" ButtonStyle="ButtonStyle.Secondary" Style="margin-right: 10px;" Click=@(args => ShowCloseableFromOverlayDialog(order)) Disabled="order.Comment == string.Empty" />
                     <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Style="margin-right: 10px;" Size="ButtonSize.Medium" Click="@(args => EditAsync(order))" />
+                    <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Style="margin-right: 10px;" Size="ButtonSize.Medium" Click="@(args => DeleteAsync(order.Id))" />
                     @if (!isCompletedOrders)
                     {
                         <RadzenButton ButtonStyle="ButtonStyle.Success" Variant="Variant.Text" class="rz-text-secondary-color" Text="Выполнен!" Click="@(args => CompletedAsync(order))" />
@@ -183,13 +184,36 @@
         }        
     }
 
+    public async Task DeleteAsync(Guid orderID)
+    {
+        try
+        {
+            bool IsSure = await DialogService.Confirm("", "Ты уверена?", new ConfirmOptions() { OkButtonText = "Да", CancelButtonText = "Нет" }) ?? false;
+            if (IsSure)
+            {
+                await OrderService.DeleteAsync(orderID);
+
+            if (isCompletedOrders)
+            {
+                orders = await OrderService.GetAllCompletedAsync();
+                return;
+            }
+
+            orders = await OrderService.GetAllIncompletedAsync();
+            orders.Sort((x, y) => -y.IssuedDateTime.CompareTo(x.IssuedDateTime));   
+            }
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Something went wrong!", Detail = exception.Message });
+        }
+    }
+
     public async Task EditAsync(Order order)
     {
         await DialogService.OpenAsync<EditDialogPage>($"Редакатирование заказа  {order.Id}",
             new Dictionary<string, object>() { { "OrderID", order.Id } },
             new DialogOptions() { Width = "1000px", Height = "700px", Resizable = true, Draggable = true });
-
-        Console.WriteLine("Edit");
 
         if (isCompletedOrders)
         {
